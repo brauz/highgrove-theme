@@ -21,115 +21,19 @@
     class="store-drawer"
     aria-labelledby="StoreAvailabilityDrawerTitle"
   >
-    <div class="store-drawer__inner">
-      <div class="store-drawer__header">
-        <h2 class="store-drawer__title" id="StoreAvailabilityDrawerTitle">Find in store</h2>
-        <button type="button" class="store-drawer__close" data-store-drawer-close aria-label="Close">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
-            <path d="M6 6l12 12M18 6L6 18"/>
-          </svg>
-        </button>
-      </div>
+    <button type="button" data-store-drawer-close hidden aria-hidden="true" tabindex="-1"></button>
 
-      <div class="store-drawer__search">
-        <form class="store-drawer__search-form" role="search" data-store-drawer-form>
-          <label class="visually-hidden" for="StoreDrawerQuery">Enter your suburb or postcode</label>
-          <input
-            id="StoreDrawerQuery"
-            class="store-drawer__input"
-            type="search"
-            placeholder="Enter your suburb or postcode"
-            data-store-drawer-query
-          >
-          <button type="button" class="store-drawer__locate" data-store-drawer-locate aria-label="Use my current location">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2"/>
-              <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>
-            </svg>
-          </button>
-        </form>
-      </div>
+    <div
+      id="brauz-find-in-store-config-product-page"
+      data-sd="{{ shop.permanent_domain }}"
+      data-cvi="{{ product.first_available_variant.id }}"
+      data-hodv="{{ product.has_only_default_variant }}"
+      style="display: none; width: 0"
+    ></div>
 
-      <div class="store-drawer__body">
-        <div class="store-drawer__results" data-store-drawer-results>
-          {%- comment -%} Reference row: closed {%- endcomment -%}
-          <details class="store-row">
-            <summary class="store-row__summary">
-              <span class="store-row__name">Store Name (NSW)</span>
-              <span class="store-row__status store-row__status--unavailable">
-                <span class="store-row__dot" aria-hidden="true"></span>Unavailable
-              </span>
-              <span class="store-row__distance">0.00 km away</span>
-              <span class="store-row__toggle" aria-hidden="true"></span>
-            </summary>
-            <div class="store-row__panel">
-              <div class="store-row__contact">
-                <address class="store-row__address">
-                  Street address<br>
-                  Suburb<br>
-                  State Postcode
-                </address>
-                <div class="store-row__details">
-                  <a href="tel:">Phone number</a><br>
-                  <a href="mailto:">Email address</a>
-                </div>
-              </div>
-              <ul class="store-row__fulfilment" role="list">
-                <li class="store-row__status store-row__status--unavailable">
-                  <span class="store-row__dot" aria-hidden="true"></span>Click &amp; Collect: Unavailable
-                </li>
-                <li class="store-row__status store-row__status--unavailable">
-                  <span class="store-row__dot" aria-hidden="true"></span>Purchase in store: Unavailable
-                </li>
-              </ul>
-              <div class="store-row__hours">
-                <span>Open until 5:00 PM today</span>
-                <button type="button" class="store-row__hours-link">Show opening hours</button>
-              </div>
-              <button type="button" class="store-row__add" disabled>Add to cart</button>
-            </div>
-          </details>
+    <div id="brauz-find-in-store-drawer-content" style="width: 100%; height: 100%;"></div>
 
-          {%- comment -%} Reference row: open {%- endcomment -%}
-          <details class="store-row" open>
-            <summary class="store-row__summary">
-              <span class="store-row__name">Store Name (QLD)</span>
-              <span class="store-row__status store-row__status--available">
-                <span class="store-row__dot" aria-hidden="true"></span>Available
-              </span>
-              <span class="store-row__distance">0.00 km away</span>
-              <span class="store-row__toggle" aria-hidden="true"></span>
-            </summary>
-            <div class="store-row__panel">
-              <div class="store-row__contact">
-                <address class="store-row__address">
-                  Street address<br>
-                  Suburb<br>
-                  State Postcode
-                </address>
-                <div class="store-row__details">
-                  <a href="tel:">Phone number</a><br>
-                  <a href="mailto:">Email address</a>
-                </div>
-              </div>
-              <ul class="store-row__fulfilment" role="list">
-                <li class="store-row__status store-row__status--available">
-                  <span class="store-row__dot" aria-hidden="true"></span>Click &amp; Collect: Available at checkout
-                </li>
-                <li class="store-row__status store-row__status--available">
-                  <span class="store-row__dot" aria-hidden="true"></span>Purchase in store: Available
-                </li>
-              </ul>
-              <div class="store-row__hours">
-                <span>Open until 5:00 PM today</span>
-                <button type="button" class="store-row__hours-link">Show opening hours</button>
-              </div>
-              <button type="button" class="store-row__add">Add to cart</button>
-            </div>
-          </details>
-        </div>
-      </div>
-    </div>
+    <script src="https://d3aq2u4yw77ivo.cloudfront.net/find-in-store/shopify/highgrove/find-in-store.shopify.highgrove.prod.js?updated_at=02102026" async=""></script>
   </dialog>
 </store-availability-drawer>
 
