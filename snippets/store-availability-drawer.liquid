@@ -1,0 +1,554 @@
+{% doc %}
+  Alinga | 29-09-2026
+  Store finder slide-out. Rendered once from layout/theme.liquid.
+
+  Opened by any element carrying [data-store-drawer-open] (the PDP
+  "Find your preferred store" link and the header map pin). A delegated
+  listener is used so triggers keep working after the header or product
+  details are re-rendered by the theme.
+
+  Markup only. Store data, stock status, search and Add to cart are to be
+  supplied by the third-party store/stock integration, which should render
+  its results into [data-store-drawer-results] using the store row pattern
+  below: one row shown closed and one shown open, as a reference.
+
+  @example
+  {% render 'store-availability-drawer' %}
+{% enddoc %}
+
+<store-availability-drawer id="StoreAvailabilityDrawer">
+  <dialog
+    class="store-drawer"
+    aria-labelledby="StoreAvailabilityDrawerTitle"
+  >
+    <div class="store-drawer__inner">
+      <div class="store-drawer__header">
+        <h2 class="store-drawer__title" id="StoreAvailabilityDrawerTitle">Find in store</h2>
+        <button type="button" class="store-drawer__close" data-store-drawer-close aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="store-drawer__search">
+        <form class="store-drawer__search-form" role="search" data-store-drawer-form>
+          <label class="visually-hidden" for="StoreDrawerQuery">Enter your suburb or postcode</label>
+          <input
+            id="StoreDrawerQuery"
+            class="store-drawer__input"
+            type="search"
+            placeholder="Enter your suburb or postcode"
+            data-store-drawer-query
+          >
+          <button type="button" class="store-drawer__locate" data-store-drawer-locate aria-label="Use my current location">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2"/>
+              <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+
+      <div class="store-drawer__body">
+        <div class="store-drawer__results" data-store-drawer-results>
+          {%- comment -%} Reference row: closed {%- endcomment -%}
+          <details class="store-row">
+            <summary class="store-row__summary">
+              <span class="store-row__name">Store Name (NSW)</span>
+              <span class="store-row__status store-row__status--unavailable">
+                <span class="store-row__dot" aria-hidden="true"></span>Unavailable
+              </span>
+              <span class="store-row__distance">0.00 km away</span>
+              <span class="store-row__toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="store-row__panel">
+              <div class="store-row__contact">
+                <address class="store-row__address">
+                  Street address<br>
+                  Suburb<br>
+                  State Postcode
+                </address>
+                <div class="store-row__details">
+                  <a href="tel:">Phone number</a><br>
+                  <a href="mailto:">Email address</a>
+                </div>
+              </div>
+              <ul class="store-row__fulfilment" role="list">
+                <li class="store-row__status store-row__status--unavailable">
+                  <span class="store-row__dot" aria-hidden="true"></span>Click &amp; Collect: Unavailable
+                </li>
+                <li class="store-row__status store-row__status--unavailable">
+                  <span class="store-row__dot" aria-hidden="true"></span>Purchase in store: Unavailable
+                </li>
+              </ul>
+              <div class="store-row__hours">
+                <span>Open until 5:00 PM today</span>
+                <button type="button" class="store-row__hours-link">Show opening hours</button>
+              </div>
+              <button type="button" class="store-row__add" disabled>Add to cart</button>
+            </div>
+          </details>
+
+          {%- comment -%} Reference row: open {%- endcomment -%}
+          <details class="store-row" open>
+            <summary class="store-row__summary">
+              <span class="store-row__name">Store Name (QLD)</span>
+              <span class="store-row__status store-row__status--available">
+                <span class="store-row__dot" aria-hidden="true"></span>Available
+              </span>
+              <span class="store-row__distance">0.00 km away</span>
+              <span class="store-row__toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="store-row__panel">
+              <div class="store-row__contact">
+                <address class="store-row__address">
+                  Street address<br>
+                  Suburb<br>
+                  State Postcode
+                </address>
+                <div class="store-row__details">
+                  <a href="tel:">Phone number</a><br>
+                  <a href="mailto:">Email address</a>
+                </div>
+              </div>
+              <ul class="store-row__fulfilment" role="list">
+                <li class="store-row__status store-row__status--available">
+                  <span class="store-row__dot" aria-hidden="true"></span>Click &amp; Collect: Available at checkout
+                </li>
+                <li class="store-row__status store-row__status--available">
+                  <span class="store-row__dot" aria-hidden="true"></span>Purchase in store: Available
+                </li>
+              </ul>
+              <div class="store-row__hours">
+                <span>Open until 5:00 PM today</span>
+                <button type="button" class="store-row__hours-link">Show opening hours</button>
+              </div>
+              <button type="button" class="store-row__add">Add to cart</button>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </dialog>
+</store-availability-drawer>
+
+<script>
+  (function () {
+    if (customElements.get('store-availability-drawer')) return;
+
+    /* Open and close only. Store content is left to the third-party integration. */
+    class StoreAvailabilityDrawer extends HTMLElement {
+      connectedCallback() {
+        this.dialog = this.querySelector('dialog');
+        this.lastTrigger = null;
+
+        this.querySelector('[data-store-drawer-close]').addEventListener('click', () => this.close());
+        this.querySelector('[data-store-drawer-form]').addEventListener('submit', (event) => event.preventDefault());
+
+        /* Backdrop click: the dialog element only receives the click when it
+           lands outside the inner panel. */
+        this.dialog.addEventListener('click', (event) => {
+          if (event.target === this.dialog) this.close();
+        });
+        this.dialog.addEventListener('cancel', (event) => {
+          event.preventDefault();
+          this.close();
+        });
+      }
+
+      open(trigger) {
+        if (this.dialog.open) return;
+        this.lastTrigger = trigger || null;
+        this.dialog.showModal();
+        document.documentElement.classList.add('store-drawer-locked');
+        requestAnimationFrame(() => this.dialog.classList.add('is-open'));
+        this.dispatchEvent(new CustomEvent('store-drawer:open', { bubbles: true }));
+      }
+
+      close() {
+        if (!this.dialog.open) return;
+        this.dialog.classList.remove('is-open');
+        var done = () => {
+          this.dialog.close();
+          document.documentElement.classList.remove('store-drawer-locked');
+          if (this.lastTrigger && this.lastTrigger.isConnected) this.lastTrigger.focus({ preventScroll: true });
+          this.dispatchEvent(new CustomEvent('store-drawer:close', { bubbles: true }));
+        };
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return done();
+        setTimeout(done, 380);
+      }
+    }
+
+    customElements.define('store-availability-drawer', StoreAvailabilityDrawer);
+
+    document.addEventListener('click', function (event) {
+      var trigger = event.target.closest('[data-store-drawer-open]');
+      if (!trigger) return;
+      event.preventDefault();
+      var drawer = document.getElementById('StoreAvailabilityDrawer');
+      if (drawer && typeof drawer.open === 'function') drawer.open(trigger);
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  html.store-drawer-locked {
+    overflow: hidden;
+  }
+
+  .store-drawer {
+    --store-drawer-navy: #1a365e;
+    --store-drawer-tint: #f3f4f7;
+    --store-drawer-line: #e6e7eb;
+    --store-drawer-text: #080b1b;
+    --store-drawer-muted: #7a7d86;
+    --store-drawer-available: #3a7049;
+    --store-drawer-unavailable: #b3aea9;
+    --store-drawer-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: min(520px, 100vw);
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: #fff;
+    color: var(--store-drawer-text);
+    box-shadow: -12px 0 40px rgb(8 11 27 / 0.08);
+    transform: translateX(100%);
+    transition: transform 0.38s var(--store-drawer-ease);
+    overflow: hidden;
+  }
+
+  .store-drawer.is-open {
+    transform: translateX(0);
+  }
+
+  .store-drawer::backdrop {
+    background: rgb(8 11 27 / 0);
+    transition: background-color 0.38s var(--store-drawer-ease);
+  }
+
+  .store-drawer.is-open::backdrop {
+    background: rgb(8 11 27 / 0.45);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .store-drawer,
+    .store-drawer::backdrop {
+      transition: none;
+    }
+  }
+
+  .store-drawer__inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .store-drawer__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 28px;
+  }
+
+  .store-drawer__title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.32px;
+    line-height: 1;
+    text-transform: uppercase;
+    color: var(--store-drawer-text);
+  }
+
+  .store-drawer__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin-inline-end: -8px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--store-drawer-text);
+    cursor: pointer;
+  }
+
+  .store-drawer__close svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .store-drawer__search {
+    padding: 24px 28px;
+    background: var(--store-drawer-tint);
+  }
+
+  .store-drawer__search-form {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--store-drawer-text);
+  }
+
+  .store-drawer__input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 44px 10px 14px;
+    border: 0;
+    background: transparent;
+    color: var(--store-drawer-text);
+    font: inherit;
+    font-size: 14px;
+  }
+
+  .store-drawer__input::placeholder {
+    color: var(--store-drawer-muted);
+  }
+
+  .store-drawer__input:focus-visible {
+    outline: none;
+  }
+
+  .store-drawer__locate {
+    position: absolute;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--store-drawer-navy);
+    cursor: pointer;
+  }
+
+  .store-drawer__locate svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .store-drawer__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 28px 28px;
+    overscroll-behavior: contain;
+  }
+
+  /* Store row: closed shows name, status, distance and a plus; open adds
+     contact details, fulfilment status, hours and Add to cart. */
+  .store-row {
+    border-bottom: 1px solid var(--store-drawer-line);
+  }
+
+  .store-row__summary {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 28px 0;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .store-row__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .store-row__name {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .store-row__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    line-height: 1.3;
+  }
+
+  .store-row__dot {
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--store-drawer-unavailable);
+  }
+
+  .store-row__status--available .store-row__dot {
+    background: var(--store-drawer-available);
+  }
+
+  .store-row__distance {
+    margin-inline-start: auto;
+    font-size: 13px;
+    color: var(--store-drawer-muted);
+    white-space: nowrap;
+  }
+
+  .store-row__toggle {
+    position: relative;
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+  }
+
+  .store-row__toggle::before,
+  .store-row__toggle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 1.5px;
+    background: var(--store-drawer-text);
+    transform: translateY(-50%);
+    transition: transform 0.3s var(--store-drawer-ease);
+  }
+
+  .store-row__toggle::after {
+    transform: translateY(-50%) rotate(90deg);
+  }
+
+  .store-row[open] .store-row__toggle::after {
+    transform: translateY(-50%) rotate(0deg);
+  }
+
+  .store-row__panel {
+    padding-bottom: 28px;
+  }
+
+  .store-row__contact {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--store-drawer-line);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .store-row__address {
+    font-style: normal;
+  }
+
+  .store-row__details {
+    text-align: right;
+  }
+
+  .store-row__details a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .store-row__fulfilment {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 0;
+    padding: 24px 0;
+    list-style: none;
+    border-bottom: 1px solid var(--store-drawer-line);
+  }
+
+  .store-row__fulfilment .store-row__status {
+    gap: 14px;
+    font-size: 13px;
+  }
+
+  .store-row__hours {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 24px 0;
+    font-size: 13px;
+  }
+
+  .store-row__hours-link {
+    padding: 0 0 2px;
+    border: 0;
+    border-bottom: 1px solid currentColor;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .store-row__add {
+    width: 100%;
+    padding: 14px 20px;
+    border: 0;
+    border-radius: 2px;
+    background: var(--store-drawer-navy);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.61px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .store-row__add:hover:not(:disabled) {
+    background: #132851;
+  }
+
+  .store-row__add:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  @media screen and (max-width: 749px) {
+    .store-drawer__header,
+    .store-drawer__search {
+      padding-inline: 20px;
+    }
+
+    .store-drawer__body {
+      padding-inline: 20px;
+    }
+
+    .store-row__summary {
+      flex-wrap: wrap;
+      row-gap: 8px;
+      padding: 22px 0;
+    }
+
+    .store-row__name {
+      flex-basis: calc(100% - 34px);
+    }
+
+    .store-row__status {
+      order: 3;
+    }
+
+    .store-row__distance {
+      order: 4;
+    }
+
+    .store-row__toggle {
+      order: 2;
+    }
+
+    .store-row__contact {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .store-row__details {
+      text-align: left;
+    }
+  }
+{% endstylesheet %}
