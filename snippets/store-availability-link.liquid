@@ -1,190 +1,33 @@
 {% doc %}
-  Alinga | 29-09-2026
-  PDP trigger for the store finder slide-out (snippets/store-availability-drawer.liquid).
-  Sits directly below the quantity + Add to cart row, on a single line: icon and
-  label on the left, the customer's chosen store on the right.
+  Brauz | 02-11-2026
+  PDP find-in-store widget, rendered by Brauz. Sits directly below the
+  quantity + Add to cart row, in place of the theme's own trigger button.
 
-  [data-store-availability-current] is left empty for the third-party store
-  integration to fill, e.g. "Your store: Highgrove Ballina". It stays hidden
-  while empty.
+  Brauz mounts its widget iframe into #brauz-find-in-store-product-page:
+  a "Check In Store Availability" row that opens the store finder drawer
+  (snippets/store-availability-drawer.liquid) and a delivery post code check.
+
+  Needs snippets/store-availability-drawer.liquid on the same page: it holds
+  the Brauz config element and script, and the drawer the row opens.
 
   @example
   {% render 'store-availability-link' %}
 {% enddoc %}
 
-{%- liquid
-  # Alinga 03-11-2026: green "Ready for delivery" status ahead of the store link (PDP only).
-  assign alinga_delivery_variant = product.selected_or_first_available_variant
-  assign alinga_delivery_ready = false
-  if template.name == 'product' and alinga_delivery_variant.available
-    assign alinga_delivery_ready = true
-  endif
--%}
-<div class="store-availability-row">
-  {%- if template.name == 'product' -%}
-    <span
-      class="delivery-status"
-      data-delivery-status
-      {% unless alinga_delivery_ready %}
-        hidden
-      {% endunless %}
-    >
-      <span class="delivery-status__dot" aria-hidden="true"></span>
-      <span class="delivery-status__text">Ready For Delivery</span>
-    </span>
-  {%- endif -%}
-  <button
-    type="button"
-    class="store-availability-link"
-    data-store-drawer-open
-    aria-haspopup="dialog"
-    aria-controls="StoreAvailabilityDrawer"
-  >
-    <span class="store-availability-link__icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 22s8-4.5 8-12a8 8 0 1 0-16 0c0 7.5 8 12 8 12z"></path>
-        <circle cx="12" cy="10" r="3"></circle>
-      </svg>
-    </span>
-    <span class="store-availability-link__heading">Check In Store Availability</span>
-    <span class="store-availability-link__current" data-store-availability-current></span>
-  </button>
-</div>
+<div
+  id="brauz-find-in-store-config-product-page"
+  data-sd="{{ shop.permanent_domain }}"
+  data-cvi="{{ product.first_available_variant.id }}"
+  data-hodv="{{ product.has_only_default_variant }}"
+  style="display: none; width: 0"
+></div>
 
+<div id="brauz-find-in-store-product-page" class="store-availability-link"></div>
 
 {% stylesheet %}
   .store-availability-link {
-    display: flex;
-    align-items: center;
-    gap: 6px;
     width: 100%;
-    margin: 0;
-    padding: 14px 0;
-    border: 0;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-  }
-
-  .store-availability-link__icon {
-    flex-shrink: 0;
-    display: flex;
-    width: 22px;
-    height: 22px;
-    color: #cbe1f2; /* matches the menu hover line */
-  }
-
-  .store-availability-link__icon svg {
-    width: 100%;
-    height: 100%;
-  }
-
-  .store-availability-link__heading {
-    position: relative;
-    color: #080b1b;
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1.2;
-  }
-
-  /* Same soft wipe as the menu links (assets/custom-theme.css). */
-  .store-availability-link__heading::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -2px;
-    height: 1px;
-    background: #cbe1f2;
-    transform: scaleX(0);
-    transform-origin: right center;
-    transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
-  }
-
-  .store-availability-link:is(:hover, :focus-visible) .store-availability-link__heading::after {
-    transform: scaleX(1);
-    transform-origin: left center;
-  }
-
-  .store-availability-link__current {
-    margin-inline-start: auto;
-    color: #4a4f5e;
-    font-size: 12.5px;
-    font-weight: 400;
-    line-height: 1.3;
-    text-align: right;
-  }
-
-  .store-availability-link__current:empty {
-    display: none;
-  }
-  /* Alinga 03-11-2026: delivery status + store link share one row, no wrapping */
-  .store-availability-row {
-    display: flex;
-    align-items: center;
-    gap: 6px 20px;
-    flex-wrap: nowrap;
-    min-width: 0;
-  }
-
-  .store-availability-row .store-availability-link {
-    width: auto;
-    flex: 1 1 auto;
-    min-width: 0;
-    white-space: nowrap;
-  }
-
-  .delivery-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-    padding: 14px 0;
-    color: #39a97a;
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1.2;
-    white-space: nowrap;
-  }
-
-  .delivery-status[hidden] {
-    display: none;
-  }
-
-  .delivery-status__dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: #39a97a;
-    flex-shrink: 0;
-  }
-
-  @media (max-width: 400px) {
-    .store-availability-row {
-      column-gap: 14px;
-    }
-
-    .delivery-status,
-    .store-availability-row .store-availability-link__heading {
-      font-size: 13px;
-    }
   }
 {% endstylesheet %}
 
-
-<script>
-  (function () {
-    /* Keep the delivery status in step with the selected variant. */
-    if (window.__alingaDeliveryStatus) return;
-    window.__alingaDeliveryStatus = true;
-    document.addEventListener('variant:update', function (event) {
-      var variant = event && event.detail && event.detail.resource;
-      if (!variant || typeof variant.available === 'undefined') return;
-      document.querySelectorAll('[data-delivery-status]').forEach(function (el) {
-        el.hidden = !variant.available;
-      });
-    });
-  })();
-</script>
+<script src="https://d3aq2u4yw77ivo.cloudfront.net/find-in-store/shopify/highgrove/find-in-store.shopify.highgrove.prod.js?updated_at=04112026" async=""></script>
